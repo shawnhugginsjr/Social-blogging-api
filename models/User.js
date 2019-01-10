@@ -10,7 +10,7 @@ const UserSchema = new mongoose.Schema({
   bio: String,
   image: String,
   hash: String,
-  salt: string
+  salt: String
 }, {
   timestamps: true
 })
