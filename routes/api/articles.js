@@ -169,4 +169,85 @@ router.delete('/:slug/comments/:comment', auth.required, function (req, res, nex
   }
 })
 
+// Retrieve a list of Articles
+router.get('/', auth.optional, function (req, res, next) {
+  const query = {}
+  const limit = req.query.limit ? req.query.limit : 20
+  const offset = req.query.offset ? req.query.offset : 0
+
+  if (typeof req.query.tag !== 'undefined') {
+    query.tagList = { "$in": [req.query.tag] }
+  }
+
+  Promise.all([
+    req.query.author ? User.findOne({ username: req.query.author }) : null,
+    req.query.favorited ? User.findOne({ username: req.query.favorited }) : null
+  ]).then(function (results) {
+    const author = results[0]
+    const favoriter = results[1]
+
+    if (author) { query.author = author._id }
+    if (favoriter) {
+      query._id = { $in: favoriter.favorites }
+    } else if (req.query.favorited) {
+      query._id = { $in: [] }
+    }
+
+    return Promise.all([
+      // Retrieve a slice of Articles depending on
+      // the limit and offset
+      Article.find(query)
+        .limit(Number(limit))
+        .skip(Number(offset))
+        .sort({ createdAt: 'desc' })
+        .populate('author')
+        .exec(),
+      // Retrive count of all Articles
+      Article.count(query).exec(),
+      // Retrive authenticated User if possible
+      req.payload ? User.findById(req.payload.id) : null,
+    ]).then(function (results) {
+      var articles = results[0]
+      var articlesCount = results[1]
+      var user = results[2]
+
+      return res.json({
+        articles: articles.map(function (article) {
+          return article.toJSONFor(user)
+        }),
+        articlesCount: articlesCount
+      })
+    })
+  }).catch(next)
+})
+
+// Send a list of Articles authored by people Users are following
+router.get('/feed', auth.required, function (req, res, next) {
+  const limit = req.query.limit ? req.query.limit : 20
+  const offset = req.query.offset ? req.query.offset : 0
+
+  User.findById(req.payload.id).then(function (user) {
+    if (!user) { return res.sendStatus(401) }
+
+    Promise.all([
+      Article.find({ author: { $in: user.following } })
+        .limit(Number(limit))
+        .skip(Number(offset))
+        .populate('author')
+        .exec(),
+      Article.count({ author: { $in: user.following } })
+    ]).then(function (results) {
+      const articles = results[0]
+      const articlesCount = results[1]
+
+      return res.json({
+        articles: articles.map(function (article) {
+          return article.toJSONFor(user)
+        }),
+        articlesCount: articlesCount
+      })
+    }).catch(next)
+  })
+})
+
 module.exports = router
