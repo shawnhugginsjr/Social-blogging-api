@@ -77,4 +77,30 @@ router.delete('/:slug', auth.required, function (req, res, next) {
   })
 })
 
+// Favorite an article
+router.post('/:slug/favorite', auth.required, function (req, res, next) {
+  User.findById(req.payload.id).then(function (user) {
+    if (!user) { return res.sendStatus(401) }
+
+    return user.favoriteArticle(req.article._id).then(function () {
+      return req.article.updateFavoriteCount().then(function (article) {
+        return res.json({ article: article.toJSONFor(user) })
+      })
+    })
+  }).catch(next)
+})
+
+// Unfavorite an article
+router.delete('/:slug/favorite', auth.required, function (req, res, next) {
+  User.findById(req.payload.id).then(function (user) {
+    if (!user) { return res.sendStatus(401) }
+
+    return user.unfavoriteArticle(req.article._id).then(function () {
+      return req.article.updateFavoriteCount().then(function (article) {
+        return res.json({ article: article.toJSONFor(user) })
+      })
+    })
+  }).catch(next)
+})
+
 module.exports = router

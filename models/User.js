@@ -7,6 +7,7 @@ const secret = require('../config').secret
 const UserSchema = new mongoose.Schema({
   username: { type: String, lowercase: true, unique: true, required: [true, "can't be blank"], match: [/^[a-zA-Z0-9]+$/, 'is invalid'], index: true },
   email: { type: String, lowercase: true, unique: true, required: [true, "can't be blank"], match: [/\S+@\S+\.\S+/, 'is invalid'], index: true },
+  favorites: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Article' }],
   bio: String,
   image: String,
   hash: String,
@@ -64,6 +65,29 @@ UserSchema.methods.toProfileJSONFor = function (user) {
     image: this.image || 'https://t4.ftcdn.net/jpg/02/15/84/43/240_F_215844325_ttX9YiIIyeaR7Ne6EaLLjMAmy4GvPC69.jpg',
     following: false
   }
+}
+
+// Favorite an article by id
+UserSchema.methods.favoriteArticle = function (id) {
+  if (this.favorites.indexOf(id) === -1) { 
+    // mongodb no longer supports $pushAll, so Array.push can't be used
+    this.favorites = this.favorites.concat([id])
+  }
+  console.log('before save of favorite')
+  return this.save()
+}
+
+// Unfavorite an article by id
+UserSchema.methods.unfavoriteArticle = function (id) {
+  this.favorites.remove(id)
+  return this.save()
+};
+
+// Checks if an article is in a User's favorites
+UserSchema.methods.isFavorite = function (id) {
+  return this.favorites.some(function (favoriteId) {
+    return favoriteId.toString() === id.toString()
+  })
 }
 
 mongoose.model('User', UserSchema)
