@@ -37,6 +37,7 @@ if (isProduction) {
 
 // Add models here
 require('./models/User')
+require('./models/Article')
 
 require('./config/passport')
 
