@@ -60,7 +60,6 @@ UserSchema.methods.toAuthJSON = function () {
 
 // Returns User profile information as JSON
 UserSchema.methods.toProfileJSONFor = function (user) {
-  console.log(this._id)
   return {
     username: this.username,
     bio: this.bio,
@@ -75,7 +74,6 @@ UserSchema.methods.favoriteArticle = function (id) {
     // mongodb no longer supports $pushAll, so Array.push can't be used
     this.favorites = this.favorites.concat([id])
   }
-  console.log('before save of favorite')
   return this.save()
 }
 
@@ -94,14 +92,9 @@ UserSchema.methods.isFavorite = function (id) {
 
 // Follow another user
 UserSchema.methods.followUser = function (id) {
-  console.log('current follower list')
-  console.log(this.following)
   if (this.following.indexOf(id) === -1) {
-    console.log('adding follow to list')
     this.following = this.following.concat([id])
-    console.log(this.following)
   }
-  console.log('before follow user')
   return this.save()
 }
 

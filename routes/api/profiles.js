@@ -31,7 +31,6 @@ router.post('/:username/follow', auth.required, function (req, res, next) {
     if (!user) { return res.sendStatus(401) }
 
     user.followUser(req.profile._id).then(function () {
-      console.log('following user')
       res.json({ profile: req.profile.toProfileJSONFor(user) })
     })
   }).catch(next)
