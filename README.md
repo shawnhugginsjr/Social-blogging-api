@@ -13,11 +13,11 @@ To get the Node server running locally:
 
 ## General Functionality
 
-- Authenticate users via JWT (login/signup pages + logout button on settings page)
-- CRU* users (sign up & settings page - no deleting required)
+- Authenticate users via JSON Web tokens
+- CRU* users (sign up & login users, update user profiles)
 - CRUD Articles
-- CR*D Comments on articles (no updating required)
-- GET and display paginated lists of articles
-- GET Articles by tags and favorited authors
+- CR*D Comments on articles
 - Favorite articles
 - Follow other users
+- GET a paginated lists of articles, can be sorted by tags and favorited authors
+
